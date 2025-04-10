@@ -14,7 +14,7 @@ services:
 
   # Microservices
   auth:
-    build: ../setiment-platform-auth
+    build: ../sentiment-platform-auth
     environment:
       - MONGO_URI=mongodb://mongo:27017/auth_db
       - KAFKA_BROKER=kafka:9092
