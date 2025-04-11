@@ -1,0 +1,12 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: auth-service
+    url: http://auth:3000
+    routes:
+      - name: auth-route
+        paths:
+          - /auth/register
+          - /auth/login
+        strip_path: false # This is crucial!

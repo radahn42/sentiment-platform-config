@@ -4,8 +4,11 @@ services:
     image: kong:latest
     environment:
       - KONG_DATABASE=off
-      - KONG_PROXY_LISTEN=0.0.0:8000
-      - KONG_ADMIN_LISTEN=0.0.0:8001
+      - KONG_PROXY_LISTEN=0.0.0.0:8000
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_DECLARATIVE_CONFIG=/etc/kong/kong.yml
+    volumes:
+      - ./kong.yml:/etc/kong/kong.yml
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -16,11 +19,14 @@ services:
   auth:
     build: ../sentiment-platform-auth
     environment:
-      - MONGO_URI=mongodb://mongo:27017/auth_db
-      - KAFKA_BROKER=kafka:9092
-      - REDIS_HOST=redis
+      - MONGO_URI=mongodb://mongo1:27017,mongo2:27017,mongo3:27017/auth_db?replicaSet=rs0
+      - KAFKA_BROKERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-secret-key-here
     depends_on:
-      - mongo
+      - mongo1
+      - mongo2
+      - mongo3
       - kafka
       - redis
     networks:
@@ -36,12 +42,32 @@ services:
       - sentiment-net
 
   # Infrastructure
-  mongo:
+  # MongoDB Replica Set
+  mongo1:
     image: mongo:latest
+    command: mongod --replSet rs0 --bind_ip_all
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongo1-data:/data/db
+    networks:
+      - sentiment-net
+  mongo2:
+    image: mongo:latest
+    command: mongod --replSet rs0 --bind_ip_all
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo2-data:/data/db
+    networks:
+      - sentiment-net
+  mongo3:
+    image: mongo:latest
+    command: mongod --replSet rs0 --bind_ip_all
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo3-data:/data/db
     networks:
       - sentiment-net
 
@@ -79,4 +105,6 @@ networks:
     driver: bridge
 
 volumes:
-  mongo-data:
+  mongo1-data:
+  mongo2-data:
+  mongo3-data:
