@@ -10,3 +10,16 @@ services:
           - /auth/register
           - /auth/login
         strip_path: false # This is crucial!
+  - name: ingestion-service
+    url: http://ingestion:3001
+    routes:
+      - name: ingestion-route
+        paths:
+          - /ingestion
+    plugins:
+      - name: jwt
+        config:
+          key_claim_name: sub
+          secret_is_base64: false
+          claims_to_verify: ["exp"]
+          secret: your-secret-key-here
